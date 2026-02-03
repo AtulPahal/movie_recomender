@@ -1,4 +1,4 @@
-# Movie Recommender
+# Movie Recommender 
 
 A modern, responsive movie recommendation web application built with **React** and **Vite**. This application allows users to select a movie they like and instantly receive a curated list of similar movies, complete with posters fetched dynamically from the TMDB API.
 
