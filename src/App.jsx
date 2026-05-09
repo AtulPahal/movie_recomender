@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import Select from 'react-select'
 import data from './movies_data.json'
 import './index.css'
@@ -7,17 +7,23 @@ import './index.css'
 function MovieModal({ movie, onClose, isLiked, onToggleLike }) {
   const [details, setDetails] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchDetails = async () => {
       setLoading(true)
+      setError(null)
       try {
         const url = `https://api.themoviedb.org/3/movie/${movie.movie_id}?api_key=${data.api_key}&language=en-US`
         const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
         const movieData = await response.json()
         setDetails(movieData)
-      } catch (error) {
-        console.error("Error fetching movie details:", error)
+      } catch (err) {
+        console.error("Error fetching movie details:", err)
+        setError(err.message || 'Failed to load movie details')
       }
       setLoading(false)
     }
@@ -51,6 +57,14 @@ function MovieModal({ movie, onClose, isLiked, onToggleLike }) {
       {loading ? (
         <div className="modal-loading">
           <div className="loading-spinner"></div>
+        </div>
+      ) : error ? (
+        <div className="modal-content">
+          <div className="modal-error">
+            <h3>⚠ Error</h3>
+            <p>{error}</p>
+            <button className="modal-btn" onClick={onClose}>Close</button>
+          </div>
         </div>
       ) : (
         <div className="modal-content">
@@ -122,11 +136,17 @@ function App() {
   const [selectedOption, setSelectedOption] = useState(null)
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [likedMovies, setLikedMovies] = useState(() => {
-    const saved = localStorage.getItem('likedMovies')
-    return saved ? JSON.parse(saved) : []
+    try {
+      const saved = localStorage.getItem('likedMovies')
+      return saved ? JSON.parse(saved) : []
+    } catch (error) {
+      console.error('Error parsing likedMovies from localStorage:', error)
+      return []
+    }
   })
 
   const movies = data.movie_list
@@ -219,11 +239,23 @@ function App() {
     })
   }
 
+  // Track request to prevent race conditions using ref
+  const requestIdRef = useRef(0)
+
   const fetchPosters = async (recs) => {
+    const currentRequestId = requestIdRef.current
+    
     const promises = recs.map(async (movie) => {
+      // Check if this request is still valid (prevents race conditions)
+      if (requestIdRef.current !== currentRequestId) {
+        return null
+      }
       try {
         const url = `https://api.themoviedb.org/3/movie/${movie.movie_id}?api_key=${API_KEY}&language=en-US`
         const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
         const movieData = await response.json()
         const posterPath = movieData.poster_path
         return {
@@ -240,32 +272,47 @@ function App() {
         }
       }
     })
-    return Promise.all(promises)
+    const results = await Promise.all(promises)
+    // Filter out null results (cancelled requests)
+    return results.filter(Boolean)
   }
 
-  const handleRecommend = async () => {
+  const handleRecommend = useCallback(async () => {
     if (!selectedOption) return
 
+    // Increment request ID to cancel any pending requests
+    requestIdRef.current += 1
+    const currentRequestId = requestIdRef.current
+    
     setLoading(true)
+    setError(null) // Clear any previous errors
+    
     const rawRecs = recMap[selectedOption.value] || []
-    const recsWithPosters = await fetchPosters(rawRecs)
-    setRecommendations(recsWithPosters)
-    setLoading(false)
-  }
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && selectedOption) {
-      handleRecommend()
+    
+    if (rawRecs.length === 0) {
+      setRecommendations([])
+      setLoading(false)
+      return
     }
-  }
+    
+    const recsWithPosters = await fetchPosters(rawRecs)
+    
+    // Only update state if this is still the current request
+    if (requestIdRef.current === currentRequestId) {
+      setRecommendations(recsWithPosters)
+      setLoading(false)
+    }
+  }, [selectedOption, recMap])
+
+
 
   const handleMovieClick = (movie) => {
     setSelectedMovie(movie)
   }
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setSelectedMovie(null)
-  }
+  }, [])
 
   const handleToggleLike = (movieId) => {
     setLikedMovies(prev => {
@@ -303,10 +350,15 @@ function App() {
                 isClearable
                 className="movie-select-container"
                 classNamePrefix="react-select"
-                onKeyDown={handleKeyPress}
                 filterOption={(option, input) => {
                   if (!input) return true
                   return option.label.toLowerCase().includes(input.toLowerCase())
+                }}
+                // Attach keyboard handler to the input
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && selectedOption) {
+                    handleRecommend()
+                  }
                 }}
               />
             </div>
@@ -330,7 +382,16 @@ function App() {
             </div>
           )}
 
-          {!loading && recommendations.length > 0 && (
+          {error && (
+            <div className="error-state">
+              <div className="error-icon">⚠</div>
+              <h3>Error</h3>
+              <p>{error}</p>
+              <button className="recommend-btn" onClick={() => setError(null)}>Dismiss</button>
+            </div>
+          )}
+
+          {!loading && !error && recommendations.length > 0 && (
             <>
               <div className="section-header">
                 <h2 className="section-title">Recommended</h2>

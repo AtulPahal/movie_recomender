@@ -640,3 +640,51 @@ body {
 ::-webkit-scrollbar-thumb {
   background: #333;
 }
+
+/* Error State */
+.error-state {
+  text-align: center;
+  padding: var(--sp-5) var(--sp-3);
+  border: 3px solid #ff0000;
+  background: var(--bg-secondary);
+}
+
+.error-icon {
+  font-size: 32px;
+  margin-bottom: var(--sp-2);
+}
+
+.error-state h3 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  text-transform: uppercase;
+  margin-bottom: var(--sp-1);
+  color: #ff0000;
+}
+
+.error-state p {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-3);
+}
+
+/* Modal Error */
+.modal-error {
+  padding: var(--sp-4);
+  text-align: center;
+}
+
+.modal-error h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: #ff0000;
+  margin-bottom: var(--sp-2);
+}
+
+.modal-error p {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-3);
+}
