@@ -1,0 +1,19 @@
+<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Film strip - RawBlock style: thick strokes, no rounded corners -->
+  <rect x="2" y="6" width="28" height="20" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <rect x="5" y="3" width="8" height="4" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <rect x="19" y="3" width="8" height="4" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <rect x="5" y="25" width="8" height="4" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <rect x="19" y="25" width="8" height="4" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <!-- Film holes -->
+  <rect x="6" y="9" width="3" height="3" fill="#ffffff"/>
+  <rect x="11" y="9" width="3" height="3" fill="#ffffff"/>
+  <rect x="16" y="9" width="3" height="3" fill="#ffffff"/>
+  <rect x="21" y="9" width="3" height="3" fill="#ffffff"/>
+  <rect x="6" y="15" width="3" height="3" fill="#ffffff"/>
+  <rect x="11" y="15" width="3" height="3" fill="#ffffff"/>
+  <rect x="16" y="15" width="3" height="3" fill="#ffffff"/>
+  <rect x="21" y="15" width="3" height="3" fill="#ffffff"/>
+  <!-- Play symbol -->
+  <polygon points="14,16 20,18 14,20" fill="#ffffff"/>
+</svg>
