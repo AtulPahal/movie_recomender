@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react' 
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import Select from 'react-select'
 import data from './movies_data.json'
 import './index.css'
